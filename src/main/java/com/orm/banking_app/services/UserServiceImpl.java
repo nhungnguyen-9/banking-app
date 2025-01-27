@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.orm.banking_app.dto.AccountInfo;
 import com.orm.banking_app.dto.Response;
 import com.orm.banking_app.dto.UserRequest;
 import com.orm.banking_app.models.User;
@@ -19,7 +20,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Response createAccount(UserRequest userRequest) {
-        // create an account - save user to the db
 
         // check if user already has an account
         if (userRepository.existsByEmail(userRequest.getEmail())) {
@@ -30,6 +30,7 @@ public class UserServiceImpl implements UserService {
                     .build();
         }
 
+        // create an account - save user to the db
         User newUser = User.builder()
                 .firstName(userRequest.getFirstName())
                 .lastName(userRequest.getLastName())
@@ -43,6 +44,18 @@ public class UserServiceImpl implements UserService {
                 .phoneNumber(userRequest.getPhoneNumber())
                 .alternativePhoneNumber(userRequest.getAlternativePhoneNumber())
                 .status("ACTIVE")
+                .build();
+
+        User savedUser = userRepository.save(newUser);
+        return Response.builder()
+                .responseCode(AccountUtils.ACCOUNT_CREATION_CODE)
+                .responseMessage(AccountUtils.ACCOUNT_CREATION_MESSAGE)
+                .accountInfo(AccountInfo.builder()
+                        .accountBalance(savedUser.getAccountBalance().toString())
+                        .accountName(savedUser.getFirstName() + " " + savedUser.getLastName() + " "
+                                + savedUser.getOtherName())
+                        .accountNumber(savedUser.getAccountNumber())
+                        .build())
                 .build();
     }
 
